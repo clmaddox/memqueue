@@ -6,10 +6,6 @@ export function enqueue(req: Request, res: Response): Response {
     const job: Job = req.body
     const queue = JobQueue.getInstance()
     const queuedJobId = queue.enqueue(job)
-    if (queuedJobId === null) {
-        return res.sendStatus(409)
-    }
-
     return res.json({ id: queuedJobId })
 }
 

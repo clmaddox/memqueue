@@ -30,7 +30,7 @@ class JobQueue {
         return JobQueue._instance
     }
     
-    public enqueue(jobInit: JobInit): number | null {
+    public enqueue(jobInit: JobInit): number {
         const jobId = this.lastId + 1
         const job: Job = {
             id: jobId,
