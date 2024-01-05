@@ -51,7 +51,7 @@ http PUT localhost:8080/jobs/<id>/conclude
 1. We are not worried about security. We could add some sort of authentication via tokens if needed.
 2. Job details are not deleted. We could delete the details once it has been concluded and it has been cleared from the queue. You would lose history, but the memory wouldn't grow infinitely. We could also seach for the job in the queue at the time of conclusion or add a timed auto delete.
 3. Queue is unconstrained. You can add as many jobs as you have available memory.
-4. We are assuming that the jobs being passed in will have at least an id, type, and a status. 
+4. We are assuming that the jobs being passed in will have at least a type. 
 
 # Possible Improvements
 1. I am using the JS built in array functions to handle the queue. If efficiency was a problem, we could consider building the queue as a linked list instead.
