@@ -32,10 +32,6 @@ class JobQueue {
     
     public enqueue(jobInit: JobInit): number | null {
         const jobId = this.lastId + 1
-        if (jobId in this.jobDetails) {
-            return null
-        }
-
         const job: Job = {
             id: jobId,
             type: jobInit.type,
