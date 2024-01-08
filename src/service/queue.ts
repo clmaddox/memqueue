@@ -27,6 +27,14 @@ export function conclude(req: Request, res: Response): Response {
     return res.sendStatus(200)
 }
 
+export function cancel(req: Request, res: Response): Response {
+    const queue = JobQueue.getInstance()
+    const params = req.params
+    // TODO: validate job ids
+    queue.cancel(parseInt(params['jobId']))
+    return res.sendStatus(200)
+}
+
 export function getJobDetails(req: Request, res: Response): Response {
     const queue = JobQueue.getInstance()
     const params = req.params

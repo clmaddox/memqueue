@@ -1,4 +1,4 @@
-export type JobStatus = 'QUEUED' | 'IN_PROGRESS' | 'CONCLUDED'
+export type JobStatus = 'QUEUED' | 'IN_PROGRESS' | 'CONCLUDED' | 'CANCELLED'
 export type JobType = 'TIME_CRITICAL' | 'NOT_TIME_CRITICAL'
 
 export interface Job {
@@ -14,7 +14,8 @@ export interface JobInit {
 class JobQueue {
     private static _instance: JobQueue | null = null
 
-    private jobs: Job[] = []
+    private criticalJobs: Job[] = []
+    private noncriticalJobs: Job[] = []
     private jobDetails: {[id: number]: Job} = {}
     private lastId: number = 0
 
@@ -39,7 +40,11 @@ class JobQueue {
         }
 
         this.jobDetails[jobId] = job
-        this.jobs.push(job)
+        if (job.type === 'TIME_CRITICAL') {
+            this.criticalJobs.push(job)
+        } else {
+            this.noncriticalJobs.push(job)
+        }
 
         this.lastId += 1
 
@@ -48,15 +53,21 @@ class JobQueue {
     }
 
     public dequeue(): Job | null {
-        if (this.jobs.length == 0) {
+        if (this.criticalJobs.length === 0 && this.noncriticalJobs.length === 0) {
             return null
         }
 
         // Skip any concluded jobs in the queue
         let job
         do {
-            job = this.jobs.shift()
-        } while (job && job.status === 'CONCLUDED')
+            job = this.criticalJobs.shift()
+        } while (job && (job.status === 'CONCLUDED' || job.status === 'CANCELLED'))
+
+        if (job === undefined) {
+            do {
+                job = this.noncriticalJobs.shift()
+            } while (job && (job.status === 'CONCLUDED' || job.status === 'CANCELLED'))
+        }
 
         if (job) {
             this.jobDetails[job.id].status = 'IN_PROGRESS'
@@ -69,13 +80,11 @@ class JobQueue {
     }
 
     public conclude(id: number): void {
-        if (!(id in this.jobDetails)) {
-            console.warn(`Job id ${id} does not exist! Skipping conclude`);
-            return
-        }
-
-        this.jobDetails[id].status = 'CONCLUDED'
-        console.log(`Concluded job id: ${id}`)
+        this.setJobStatus(id, 'CONCLUDED')
+    }
+    
+    public cancel(id: number): void {
+        this.setJobStatus(id, 'CANCELLED')
     }
 
     public getJobDetails(id: number): Job | null {
@@ -83,9 +92,20 @@ class JobQueue {
     }
 
     public clearQueue(): void {
-        this.jobs = []
+        this.criticalJobs = []
+        this.noncriticalJobs = []
         this.jobDetails = {}
         this.lastId = 0
+    }
+
+    private setJobStatus(id: number, status: JobStatus): void {
+        if (!(id in this.jobDetails)) {
+            console.warn(`Job id ${id} does not exist! Skipping set status`);
+            return
+        }
+
+        this.jobDetails[id].status = status
+        console.log(`Set status ${status} for job id: ${id}`)
     }
 }
 

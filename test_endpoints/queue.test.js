@@ -46,11 +46,34 @@ test('Test Queue', async (t) => {
         assert.strictEqual(resp2.type, 'TIME_CRITICAL')
         assert.strictEqual(resp2.status, 'IN_PROGRESS')
 
-        const response3 = await fetch('http://localhost:8080/jobs/2/conclude', {method: 'PUT', headers: {'Content-Type': 'application/json'}})
-        const response4 = await fetch('http://localhost:8080/jobs/2')
+        const response3 = await fetch(`http://localhost:8080/jobs/${expectedId}/conclude`, {method: 'PUT', headers: {'Content-Type': 'application/json'}})
+        const response4 = await fetch(`http://localhost:8080/jobs/${expectedId}`)
         const resp4 = await response4.json()
         assert.strictEqual(resp4.id, expectedId)
         assert.strictEqual(resp4.type, 'TIME_CRITICAL')
         assert.strictEqual(resp4.status, 'CONCLUDED')
+    })
+
+    await t.test('Test cancel', async (t) => {
+        const req = {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: 'TIME_CRITICAL'
+            })
+        }
+
+        const response = await fetch('http://localhost:8080/jobs/enqueue', req)
+        const resp = await response.json()
+        const expectedId = resp.id
+
+        const response3 = await fetch(`http://localhost:8080/jobs/${expectedId}/cancel`, {method: 'PUT', headers: {'Content-Type': 'application/json'}})
+        const response4 = await fetch(`http://localhost:8080/jobs/${expectedId}`)
+        const resp4 = await response4.json()
+        assert.strictEqual(resp4.id, expectedId)
+        assert.strictEqual(resp4.type, 'TIME_CRITICAL')
+        assert.strictEqual(resp4.status, 'CANCELLED')
     })
 })

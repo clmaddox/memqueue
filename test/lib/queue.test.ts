@@ -84,4 +84,27 @@ describe('Test Queue', () => {
 
     // TODO: Add a test to verify skipping concluded jobs in queue
     // TODO: Add a couple tests to verify error/missing data cases of queue functions
+
+    test('Dequeue prioritizes TIME_CRITICAL', () => {
+        const expectedId2 = queue.enqueue({
+            type: 'NOT_TIME_CRITICAL'
+        })
+
+        const expectedId1 = queue.enqueue({
+            type: 'TIME_CRITICAL'
+        })
+
+        const queuedJob = queue.dequeue()
+        expect(queuedJob).not.toBeNull()
+
+        expect(queuedJob?.id).toEqual(expectedId1)
+        expect(queuedJob?.type).toEqual('TIME_CRITICAL')
+        expect(queuedJob?.status).toEqual('IN_PROGRESS')
+
+        const queuedJob2 = queue.dequeue()
+        expect(queuedJob2).not.toBeNull()
+        expect(queuedJob2?.id).toEqual(expectedId2)
+        expect(queuedJob2?.type).toEqual('NOT_TIME_CRITICAL')
+        expect(queuedJob2?.status).toEqual('IN_PROGRESS')
+    })
 })
