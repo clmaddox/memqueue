@@ -57,16 +57,17 @@ class JobQueue {
             return null
         }
 
+        const priorityQueues = [this.criticalJobs, this.noncriticalJobs]
         // Skip any concluded jobs in the queue
         let job
-        do {
-            job = this.criticalJobs.shift()
-        } while (job && (job.status === 'CONCLUDED' || job.status === 'CANCELLED'))
-
-        if (job === undefined) {
+        for (const priorityQueue of priorityQueues) {
             do {
-                job = this.noncriticalJobs.shift()
+                job = priorityQueue.shift()
             } while (job && (job.status === 'CONCLUDED' || job.status === 'CANCELLED'))
+
+            if (job) {
+                break
+            }
         }
 
         if (job) {
